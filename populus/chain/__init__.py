@@ -1,9 +1,3 @@
-from populus.contracts.exceptions import (  # noqa: F401
-    NoKnownAddress,
-    UnknownContract,
-    BytecodeMismatch,
-)
-
 from .geth import (  # noqa: F401
     BaseGethChain,
     LocalGethChain,
@@ -19,4 +13,16 @@ from .tester import (  # noqa: F401
 )
 from .testrpc import (  # noqa: F401
     TestRPCChain,
+)
+
+
+__all__ = (
+    "TestRPCChain",
+    "TesterChain",
+    "BaseGethChain",
+    "TemporaryGethChain",
+    "LocalGethChain",
+    "MainnetChain",
+    "TestnetChain",
+    "ExternalChain",
 )

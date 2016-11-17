@@ -1,5 +1,4 @@
 import pytest
-import warnings
 
 from populus.project import Project
 
@@ -41,22 +40,6 @@ def provider(chain):
 @pytest.fixture()
 def web3(chain):
     return chain.web3
-
-
-@pytest.fixture()
-def base_contract_factories(chain):
-    # TODO: figure out what to do with thi API
-    return chain.contract_factories
-
-
-@pytest.fixture()
-def contracts(base_contract_factories):
-    warnings.warn(PendingDeprecationWarning(
-        "The `contracts` fixture has been renamed to `base_contract_factories`. "
-        "The `contracts` fixture is pending deprecation and will be removed in "
-        "the near future"
-    ))
-    return base_contract_factories
 
 
 @pytest.fixture()

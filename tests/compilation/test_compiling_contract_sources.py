@@ -8,6 +8,7 @@ from populus.utils.compile import (
 from populus.utils.testing import (
     load_contract_fixture,
     load_test_contract_fixture,
+    load_example_package,
 )
 
 
@@ -34,6 +35,39 @@ def test_compiling_with_local_project_imports(project):
     assert 'ImportTestC' in contract_data
 
 
+@load_example_package('owned')
+def test_compiling_with_single_installed_package(project):
+    source_paths, contract_data = compile_project_contracts(project)
+
+    assert 'owned' in contract_data
+
+
+@load_example_package('owned')
+@load_example_package('standard-token')
+def test_compiling_with_multiple_installed_packages(project):
+    source_paths, contract_data = compile_project_contracts(project)
+
+    assert 'owned' in contract_data
+    assert 'Token' in contract_data
+    assert 'StandardToken' in contract_data
+
+
+@load_example_package('transferable')
+def test_compiling_with_nested_installed_packages(project):
+    source_paths, contract_data = compile_project_contracts(project)
+
+    assert 'owned' in contract_data
+    assert 'transferable' in contract_data
+
+
+@load_example_package('transferable')
+def test_compiling_with_nested_installed_packages(project):
+    source_paths, contract_data = compile_project_contracts(project)
+
+    assert 'owned' in contract_data
+    assert 'transferable' in contract_data
+
+
 @load_test_contract_fixture('TestMath.sol')
 def test_compiling_with_test_contracts(project):
     source_paths, contract_data = compile_project_contracts(project)
@@ -55,3 +89,12 @@ def test_compiling_with_abstract_contract_inhereted(project):
 
     assert 'Abstract' in contract_data
     assert 'UsesAbstract' in contract_data
+
+
+@load_example_package('owned')
+@load_test_contract_fixture('UsesOwned.sol')
+def test_compiling_with_import_from_package(project):
+    source_paths, contract_data = compile_project_contracts(project)
+
+    assert 'UsesOwned' in contract_data
+    assert 'owned' in contract_data

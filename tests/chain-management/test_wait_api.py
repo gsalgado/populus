@@ -1,10 +1,10 @@
 import pytest
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     'chain_name', ('temp', 'testrpc', 'tester'),
 )
-@pytest.mark.slow
 def test_wait_for_block(project, chain_name):
     with project.get_chain(chain_name) as chain:
         web3 = chain.web3
@@ -15,10 +15,10 @@ def test_wait_for_block(project, chain_name):
         assert web3.eth.blockNumber >= start_block + 3
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     'chain_name', ('temp', 'testrpc', 'tester'),
 )
-@pytest.mark.slow
 def test_wait_for_receipt(project, chain_name, wait_for_unlock):
     with project.get_chain(chain_name) as chain:
         web3 = chain.web3
@@ -34,10 +34,10 @@ def test_wait_for_receipt(project, chain_name, wait_for_unlock):
         assert txn_receipt['transactionHash'] == txn_hash
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     'chain_name', ('temp', 'testrpc', 'tester'),
 )
-@pytest.mark.slow
 def test_wait_for_contract_address(project,
                                    chain_name,
                                    wait_for_unlock):

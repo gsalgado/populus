@@ -5,7 +5,6 @@ import pytest
 def test_external_rpc_chain(project):
     with project.get_chain('testrpc') as chain:
         web3 = chain.web3
-        registrar = chain.registrar
 
         project.config['chains.external.chain.class'] = 'populus.chain.ExternalChain'
         project.config['chains.external.web3.provider.class'] = 'web3.providers.rpc.HTTPProvider'

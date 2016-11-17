@@ -13,10 +13,6 @@ from populus.utils.networking import (
 )
 
 
-TESTNET_BLOCK_1_HASH = '0xad47413137a753b2061ad9b484bf7b0fc061f654b951b562218e9f66505be6ce'
-MAINNET_BLOCK_1_HASH = '0x88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6'
-
-
 @pytest.mark.slow
 def test_project_tester_chain(project_dir):
     project = Project()
@@ -51,23 +47,6 @@ def test_project_temp_chain(project_dir):
         assert web3.version.node.startswith('Geth')
 
 
-@pytest.mark.skip("Morden no longer exists")
-@pytest.mark.slow
-def test_project_morden_chain(project_dir):
-    project = Project()
-
-    chain = project.get_chain('morden')
-
-    with chain as running_morden_chain:
-        web3 = running_morden_chain.web3
-        assert web3.version.node.startswith('Geth')
-
-        running_morden_chain.wait.for_block(block_number=1, timeout=180)
-
-        block_1 = web3.eth.getBlock(1)
-        assert block_1['hash'] == TESTNET_BLOCK_1_HASH
-
-
 @pytest.mark.slow
 def test_project_local_chain_ipc(project_dir):
     project = Project()
@@ -84,9 +63,10 @@ def test_project_local_chain_ipc(project_dir):
 
         running_local_chain.wait.for_block(block_number=1, timeout=180)
 
+        block_0 = web3.eth.getBlock(0)
+        assert block_0['miner'] == "0x3333333333333333333333333333333333333333"
+
         block_1 = web3.eth.getBlock(1)
-        assert block_1['hash'] != MAINNET_BLOCK_1_HASH
-        assert block_1['hash'] != TESTNET_BLOCK_1_HASH
         assert block_1['miner'] == web3.eth.coinbase
 
 
@@ -108,7 +88,8 @@ def test_project_local_chain_rpc(project_dir):
 
         running_local_chain.wait.for_block(block_number=1, timeout=180)
 
+        block_0 = web3.eth.getBlock(0)
+        assert block_0['miner'] == "0x3333333333333333333333333333333333333333"
+
         block_1 = web3.eth.getBlock(1)
-        assert block_1['hash'] != MAINNET_BLOCK_1_HASH
-        assert block_1['hash'] != TESTNET_BLOCK_1_HASH
         assert block_1['miner'] == web3.eth.coinbase

@@ -13,9 +13,10 @@ from solc.exceptions import (
 )
 
 from populus.utils.compile import (
+    compute_project_compilation_arguments,
+    compute_test_compilation_arguments,
+    compute_installed_packages_compilation_arguments,
     process_compiler_output,
-    get_project_source_paths,
-    get_test_source_paths,
 )
 
 
@@ -31,29 +32,59 @@ def compile_project_contracts(project, compiler_settings=None):
     compiler_settings.setdefault('output_values', DEFAULT_COMPILER_OUTPUT_VALUES)
     logger.debug("Compiler Settings: %s", pprint.pformat(compiler_settings))
 
-    project_contract_source_paths = get_project_source_paths(project.contracts_source_dir)
+    project_source_paths, project_import_remappings = compute_project_compilation_arguments(
+        project.contracts_source_dir,
+        project.installed_packages_dir,
+    )
     logger.debug(
         "Found %s project source files: %s",
-        len(project_contract_source_paths),
-        project_contract_source_paths,
+        len(project_source_paths),
+        project_source_paths,
     )
-
-    test_contract_source_paths = get_test_source_paths(project.tests_dir)
+    test_source_paths, test_import_remappings = compute_test_compilation_arguments(
+        project.tests_dir,
+        project.installed_packages_dir,
+    )
     logger.debug(
         "Found %s test source files: %s",
-        len(test_contract_source_paths),
-        test_contract_source_paths,
+        len(test_source_paths),
+        test_source_paths,
+    )
+    installed_packages_compilation_arguments = (
+        compute_installed_packages_compilation_arguments(project.installed_packages_dir)
+    )
+    if installed_packages_compilation_arguments:
+        installed_packages_source_paths, installed_packages_import_remappings = (
+            installed_packages_compilation_arguments
+        )
+    else:
+        installed_packages_source_paths = tuple()
+        installed_packages_import_remappings = tuple()
+    logger.debug(
+        "Found %s dependency source files: %s",
+        len(installed_packages_source_paths),
+        installed_packages_source_paths,
     )
 
     all_source_paths = tuple(itertools.chain(
-        project_contract_source_paths,
-        test_contract_source_paths,
+        project_source_paths,
+        test_source_paths,
+        *installed_packages_source_paths
+    ))
+    all_import_remappings = tuple(itertools.chain(
+        project_import_remappings,
+        test_import_remappings,
+        *installed_packages_import_remappings
     ))
 
     try:
-        compiled_contracts = compile_files(all_source_paths, **compiler_settings)
+        compiled_contracts = compile_files(
+            all_source_paths,
+            import_remappings=all_import_remappings,
+            **compiler_settings
+        )
     except ContractsNotFound:
-        return all_source_paths, {}
+        return project_source_paths, {}
 
     normalized_compiled_contracts = dict(
         process_compiler_output(contract_name, contract_data)
