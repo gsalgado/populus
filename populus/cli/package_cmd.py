@@ -1,5 +1,6 @@
 import click
 import json
+import logging
 import os
 
 from eth_utils import (
@@ -60,6 +61,7 @@ def package_init(ctx):
     """
     Initialize the `ethpm.json` file.
     """
+    logger = logging.getLogger('populus.cli.init')
     project = ctx.obj['PROJECT']
 
     if project.has_package_manifest:
@@ -87,9 +89,9 @@ def package_init(ctx):
         )
 
     if project.has_package_manifest:
-        click.echo("Updating existing ethpm.json file.")
+        logger.info("Updating existing ethpm.json file.")
     else:
-        click.echo("Writing new ethpm.json file.")
+        logger.info("Writing new ethpm.json file.")
 
     # TODO: pull from git configuration if present.
     package_manifest['package_name'] = click.prompt(
@@ -135,7 +137,7 @@ def package_init(ctx):
     with open(project.package_manifest_path, 'w') as package_manifest_file:
         json.dump(package_manifest, package_manifest_file, sort_keys=True, indent=2)
 
-    click.echo("Wrote package manifest: {0}".format(project.package_manifest_path))
+    logger.info("Wrote package manifest: %s", project.package_manifest_path)
 
 
 @package_cmd.command('install')
@@ -153,6 +155,7 @@ def package_install(ctx, package_identifiers, save):
     resolves all dependencies for each identifier, then does the actual
     installation.
     """
+    logger = logging.getLogger('populus.cli.install')
     project = ctx.obj['PROJECT']
 
     if not package_identifiers:
@@ -163,7 +166,7 @@ def package_install(ctx, package_identifiers, save):
         package_identifiers,
         project.package_backends,
     )
-    click.echo("Installed Packages: {0}".format(', '.join((
+    logger.info("Installed Packages: {0}".format(', '.join((
         package_data['meta']['package_name'] for package_data in installed_dependencies
     ))))
 
@@ -218,10 +221,11 @@ def package_build(ctx,
     """
     Create a release.
     """
+    logger = logging.getLogger('populus.cli.build')
     project = ctx.obj['PROJECT']
 
     if not project.has_package_manifest:
-        click.echo("No package manifest found in project.")
+        logger.error("No package manifest found in project.")
         ctx.exit(1)
 
     package_manifest = project.package_manifest
@@ -243,11 +247,11 @@ def package_build(ctx,
                 release_lockfile_path=release_lockfile_path,
             )
         )
-        click.echo(cannot_overwrite_msg)
+        logger.error(cannot_overwrite_msg)
         ctx.exit(1)
 
     if chain_names and not contract_instance_names:
-        click.echo("Must specify which contracts you want to include in the deployments")
+        logger.error("Must specify which contracts you want to include in the deployments")
         ctx.exit(1)
 
     release_lockfile = construct_release_lockfile(
@@ -263,7 +267,7 @@ def package_build(ctx,
 
     write_release_lockfile(release_lockfile, release_lockfile_path)
 
-    click.echo("Wrote release lock file: {0}".format(release_lockfile_path))
+    logger.info("Wrote release lock file: {0}".format(release_lockfile_path))
 
 
 @package_cmd.command('publish')
@@ -282,6 +286,7 @@ def package_publish(ctx, release_lockfile_path, wait_for_sync):
     """
     Create a release.
     """
+    logger = logging.getLogger('populus.cli.publish')
     project = ctx.obj['PROJECT']
 
     if release_lockfile_path is None:
@@ -308,5 +313,5 @@ def package_publish(ctx, release_lockfile_path, wait_for_sync):
             raise ValueError("TODO: handle this gracefully")
         else:
             backend_name, backend = tuple(publishable_backends.items())[0]
-            click.echo("Publishing to {0}".format(backend_name))
+            logger.info("Publishing to {0}".format(backend_name))
             backend.publish_release_lockfile(release_lockfile, release_lockfile_uri)
